@@ -14,7 +14,6 @@ class DatabaseConnector:
     def init_db_engine(self, db_creds):
     #     # Now create a method init_db_engine which will read the credentials from the return of read_db_creds and initialise 
     #     # and return an sqlalchemy database engine.
-         # crds stands for credentials which will be used for connection to RDS. 
         engine = create_engine(f"postgresql+psycopg2://{db_creds['RDS_USER']}:{db_creds['RDS_PASSWORD']}@{db_creds['RDS_HOST']}:{db_creds['RDS_PORT']}/{db_creds['RDS_DATABASE']}")
         return engine
 
