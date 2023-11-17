@@ -33,3 +33,16 @@ class DataExtractor:
 con = DatabaseConnector()
 extr = DataExtractor()
 extr.read_rds_table(con, "legacy_users")
+
+class DataCleaning:
+    def __init__(self):
+        self.connector = DatabaseConnector()
+        self.extractor = DataExtractor()
+
+    def clean_user_data(self):
+        read_user_data = self.extractor.read_rds_table(self.connector,'legacy_users')
+        return read_user_data
+
+clean = DataCleaning()
+cl = clean.clean_user_data()
+print(cl)
