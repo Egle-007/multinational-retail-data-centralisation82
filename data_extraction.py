@@ -19,8 +19,9 @@ class DataExtractor:
     #             return df
     def read_rds_table(self, instance, table_name):
         engine = instance.init_db_engine()
-        df = pd.read_sql_table(table_name, engine)
-        return df
+        df = pd.read_sql_table(table_name, engine, index_col='index')
+        df_copy = df.copy()
+        return df_copy
 
 con = DatabaseConnector()
 extr = DataExtractor()
