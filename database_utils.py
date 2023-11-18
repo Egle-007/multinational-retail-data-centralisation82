@@ -21,6 +21,8 @@ class DatabaseConnector:
         inspector = inspect(engine)
         for table in inspector.get_table_names():
             print(table)
+    
+    
    
 # con = DatabaseConnector()
 # v = con.read_db_creds()
