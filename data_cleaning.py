@@ -12,9 +12,9 @@ class DataCleaning:
     def __init__(self):
         self.connector = DatabaseConnector()        # Connection through engine
         self.extractor = DataExtractor()            # Returns dataframe 
-
+        
     # with methods to clean data from each of the data sources.
-    def clean_user_data(self):
+    def clean_user_data(self, ):
         read_user_data = self.extractor.read_rds_table(self.connector,'legacy_users')           # Data to clean
         sorted_user_data = read_user_data.sort_values(by='index')                               # Sorts index into a sequential order
 
@@ -49,7 +49,6 @@ class DataCleaning:
         col = user_data.pop('phone_country_code')                                               # Moves 'phone_country_code' column to a logical plase in the table.
         user_data.insert(8, col.name, col)
 
-                
         return user_data
            
               
