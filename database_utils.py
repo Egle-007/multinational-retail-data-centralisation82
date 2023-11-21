@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, inspect
 import pandas as pd
 import psycopg2
 # from  data_cleaning import DataCleaning
-import localdb_creds
+# import localdb_creds
 
 class DatabaseConnector:
    
