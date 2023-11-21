@@ -5,6 +5,8 @@ from dateutil.parser import parse
 import numpy as np
 from cleaning_functions import remove_non_numerics, invalid_numbers, phone_code
 # from pandasgui import show
+from sqlalchemy import create_engine
+
 
 
 
@@ -14,8 +16,8 @@ class DataCleaning:
         self.extractor = DataExtractor()            # Returns dataframe 
         
     # with methods to clean data from each of the data sources.
-    def clean_user_data(self, ):
-        read_user_data = self.extractor.read_rds_table(self.connector,'legacy_users')           # Data to clean
+    def clean_user_data(self, table_name):
+        read_user_data = self.extractor.read_rds_table(self.connector, table_name)           # Data to clean
         sorted_user_data = read_user_data.sort_values(by='index')                               # Sorts index into a sequential order
 
         # Cleaning data from meaningless info
@@ -50,14 +52,24 @@ class DataCleaning:
         user_data.insert(8, col.name, col)
 
         return user_data
+    
+    def upload_to_db(self, df, table_name):                                                     # Creates connection with and uploads dataframe to local pgadmin sales_data database
+        DATABASE_TYPE = 'postgresql'
+        DBAPI = 'psycopg2'
+        HOST = 'localhost'
+        USER = 'postgres'
+        PASSWORD = input()
+        DATABASE = 'sales_data'
+        PORT = 5432
+        engine_local = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
+        df.to_sql(table_name, engine_local)
            
-              
-
-
        
 
 
 clean = DataCleaning()
-v = clean.clean_user_data()
+v = clean.clean_user_data('legacy_users')
 print(v)
+
+h = clean.upload_to_db(v, 'dim_users')
 
