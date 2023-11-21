@@ -10,8 +10,8 @@ from cleaning_functions import remove_non_numerics, invalid_numbers, phone_code
 
 class DataCleaning:
     def __init__(self):
-        self.connector = DatabaseConnector()    # Connection through engine
-        self.extractor = DataExtractor()        # Returns dataframe
+        self.connector = DatabaseConnector()        # Connection through engine
+        self.extractor = DataExtractor()            # Returns dataframe 
 
     # with methods to clean data from each of the data sources.
     def clean_user_data(self):
@@ -23,7 +23,8 @@ class DataCleaning:
         user_data.dropna(axis=0, inplace=True)                                                  # Drops rows with nan val. (nan val would go through the whole row - no useful info)
         user_data = user_data[user_data['country_code'].apply(lambda x: len(str(x)) <= 3)]      # Dropping other rows with meaningless info
         
-        user_data['country_code'] = user_data['country_code'].str.replace('GGB', 'GB')          # Checked unique country codes: np.sort(nan_user_data["country_code"].unique()), only Country_code typo 'GGB' to be converted into 'GB'
+        user_data['country_code'] = user_data['country_code'].str.replace('GGB', 'GB')          # Converts country_code typo 'GGB' into 'GB'
+        user_data['address'] = user_data['address'].str.replace('\n', ', ' )                    # Replaces '\n' from the data in the address column with a ','.
 
         # Assigning columns to an appropriate dTypes
         user_data['first_name'] = user_data['first_name'].astype('string')
@@ -37,7 +38,7 @@ class DataCleaning:
             
 
         # Cleaning phone numbers
-        user_data['phone_number'] = user_data['phone_number'].str.replace('+49','')             # Removing phone country code. 
+        user_data['phone_number'] = user_data['phone_number'].str.replace('+49','')             # Removes phone country code (if it is in the number) for numbers to be in the same style. 
         user_data['phone_number'] = user_data['phone_number'].str.replace('+44','')
         user_data['phone_number'] = user_data['phone_number'].str.replace('+1','')
        
@@ -48,6 +49,7 @@ class DataCleaning:
         col = user_data.pop('phone_country_code')                                               # Moves 'phone_country_code' column to a logical plase in the table.
         user_data.insert(8, col.name, col)
 
+                
         return user_data
            
               
@@ -60,28 +62,3 @@ clean = DataCleaning()
 v = clean.clean_user_data()
 print(v)
 
-
-
-     # user_data['phone_number'] = user_data['phone_number'].apply(remove_non_numerics)
-
-        # df = np.sort(user_data['phone_number'].unique()) 
-        # phone_code = np.sort(user_data["country_code"].unique()) 
-        # print(phone_code)
-
- # def drop_nonsence_rows():
-        #     for row in range(len(nan_user_data["country_code"])):
-        #         if len(nan_user_data["country_code"][row]) > 3:
-        #             nan_user_data.drop([row])
-        #     # for i in nan_user_data['country_code']:
-        #     #     if len(i) > 3:
-        #     #         nan_user_data.drop([i])
-
-           # nan_user_data.drop(nan_user_data[len(nan_user_data['country_code']) >= 4].index)
-        
-
-
-        # user_data['phone_number'] = user_data['phone_number'].astype('string')
-        # df = user_data['phone_number'].apply(remove_non_numberics)      
-        # nan_user_data['phone_number'] = nan_user_data['phone_number'].str.replace('[^0-9+]', '') # this should replace everything that is not 0-9 but it doesnt
-        # # user_data['phone_number'] = user_data['phone_number'].str.strip('.+)(|')
-        # # print(user_data.info())

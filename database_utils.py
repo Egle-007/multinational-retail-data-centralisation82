@@ -22,13 +22,7 @@ class DatabaseConnector:
         for table in inspector.get_table_names():
             print(table)
     
-    
-   
-# con = DatabaseConnector()
-# v = con.read_db_creds()
-# h = con.init_db_engine(v)
-# m = con.list_db_tables(h)
-# print(m)
+
 
 # ['legacy_store_details', 'legacy_users', 'orders_table']
 
