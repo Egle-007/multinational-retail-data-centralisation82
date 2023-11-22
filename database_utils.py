@@ -26,7 +26,7 @@ class DatabaseConnector:
             print(table)     
 
     # def upload_to_db(self, df, table_name):
-    #     # user_data = self.cleaner.clean_user_data()
+    #     
     #     engine_local = create_engine(f"{localdb_creds['DATABASE_TYPE']}+{localdb_creds['DBAPI']}://{localdb_creds['USER']}:{localdb_creds['PASSWORD']}@{localdb_creds['HOST']}:{localdb_creds['PORT']}/{localdb_creds['DATABASE']}")
         
     #     df.to_sql(table_name, engine_local)

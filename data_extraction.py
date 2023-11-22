@@ -4,6 +4,7 @@ import psycopg2
 from sqlalchemy import create_engine, inspect
 import pandas as pd
 import tabula
+# from pandasgui import show
 
 class DataExtractor:
          

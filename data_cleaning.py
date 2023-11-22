@@ -16,14 +16,14 @@ class DataCleaning:
         self.extractor = DataExtractor()            # Returns dataframe 
         
     # with methods to clean data from each of the data sources.
-    def clean_user_data(self, table_name):
-        read_user_data = self.extractor.read_rds_table(self.connector, table_name)           # Data to clean
+    def clean_user_data(self):
+        read_user_data = self.extractor.read_rds_table(self.connector, 'legacy_users')          # Data to clean
         sorted_user_data = read_user_data.sort_values(by='index')                               # Sorts index into a sequential order
 
-        # Cleaning data from meaningless info
-        user_data = sorted_user_data.replace('NULL', np.nan)                                    # Relaces 'NULL' into np.nan. 
+        # Removing meaningless info
+        user_data = sorted_user_data.replace('NULL', np.nan)                                    # Relaces 'NULL' with np.nan. 
         user_data.dropna(axis=0, inplace=True)                                                  # Drops rows with nan val. (nan val would go through the whole row - no useful info)
-        user_data = user_data[user_data['country_code'].apply(lambda x: len(str(x)) <= 3)]      # Dropping other rows with meaningless info
+        user_data = user_data[user_data['country_code'].apply(lambda x: len(str(x)) <= 3)]      # Dropping other rows with meaningless info based on the expected length of a string
         
         user_data['country_code'] = user_data['country_code'].str.replace('GGB', 'GB')          # Converts country_code typo 'GGB' into 'GB'
         user_data['address'] = user_data['address'].str.replace('\n', ', ' )                    # Replaces '\n' from the data in the address column with a ','.
@@ -63,13 +63,37 @@ class DataCleaning:
         PORT = 5432
         engine_local = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
         df.to_sql(table_name, engine_local)
-           
+
+    def clean_card_data(self):
+        card_data = self.extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
+        card_data.sort_values(by='date_payment_confirmed', ascending = False, inplace = True)   # Sorts values based on the date when the paiment was confirmed in descending order
+        card_data = card_data.reset_index(drop=True)                                            # Fixes index, was a repeat of 54.
+
+
+        # Removing meaningless info
+        card_data = card_data.replace('NULL', np.nan)                                           # Relaces 'NULL' with np.nan. 
+        card_data.dropna(axis=0, inplace=True)                                                  # Drops rows with nan val.
+        card_data = card_data[card_data['expiry_date'].apply(lambda x: len(str(x)) <= 5)]       # Dropping other rows with meaningless info based on the expected length of a string
+        
+        card_data['card_number'] = card_data['card_number'].astype('string')                    # To remove '?' appearing in card numbers, first converts them to strings 
+        card_data['card_number'] = card_data['card_number'].apply(remove_non_numerics)          # then applies remove_non_numerics.
+
+        # return card_data
+        return np.sort(card_data['card_number'].unique())
+
+
+        
+
+        
+# card_number	expiry_date	card_provider	date_payment_confirmed           
        
 
 
 clean = DataCleaning()
-v = clean.clean_user_data('legacy_users')
-print(v)
+# v = clean.clean_user_data()
+# print(v)
+h = clean.clean_card_data()
+print(h)
+# h = clean.upload_to_db(v, 'dim_users')
 
-h = clean.upload_to_db(v, 'dim_users')
-
+        # card_data.to_csv('card_data.csv')
