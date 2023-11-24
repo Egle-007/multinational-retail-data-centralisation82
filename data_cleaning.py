@@ -6,6 +6,7 @@ import numpy as np
 from cleaning_functions import remove_non_numerics, invalid_numbers, phone_code
 # from pandasgui import show
 from sqlalchemy import create_engine
+from datetime import datetime
 
 
 
@@ -38,7 +39,6 @@ class DataCleaning:
         user_data['join_date'] = user_data['join_date'].apply(parse) 
         user_data['join_date'] = pd.to_datetime(user_data['join_date'], infer_datetime_format=True, errors='coerse')
             
-
         # Cleaning phone numbers
         user_data['phone_number'] = user_data['phone_number'].str.replace('+49','')             # Removes phone country code (if it is in the number) for numbers to be in the same style. 
         user_data['phone_number'] = user_data['phone_number'].str.replace('+44','')
@@ -66,20 +66,27 @@ class DataCleaning:
 
     def clean_card_data(self):
         card_data = self.extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-        card_data.sort_values(by='date_payment_confirmed', ascending = False, inplace = True)   # Sorts values based on the date when the paiment was confirmed in descending order
-        card_data = card_data.reset_index(drop=True)                                            # Fixes index, was a repeat of 54.
-
-
+       
         # Removing meaningless info
         card_data = card_data.replace('NULL', np.nan)                                           # Relaces 'NULL' with np.nan. 
         card_data.dropna(axis=0, inplace=True)                                                  # Drops rows with nan val.
         card_data = card_data[card_data['expiry_date'].apply(lambda x: len(str(x)) <= 5)]       # Dropping other rows with meaningless info based on the expected length of a string
         
         card_data['card_number'] = card_data['card_number'].astype('string')                    # To remove '?' appearing in card numbers, first converts them to strings 
-        card_data['card_number'] = card_data['card_number'].apply(remove_non_numerics)          # then applies remove_non_numerics.
+        card_data['card_number'] = card_data['card_number'].apply(remove_non_numerics)          # then applies remove_non_numerics. After using the function, dType turns back into object.
 
-        # return card_data
-        return np.sort(card_data['card_number'].unique())
+        # Assigning columns to an appropriate dTypes
+        card_data['date_payment_confirmed'] = card_data['date_payment_confirmed'].apply(parse) 
+        card_data['date_payment_confirmed'] = pd.to_datetime(card_data['date_payment_confirmed'], infer_datetime_format=True, errors='coerse')
+       
+        card_data['expiry_date'] = '01/' + card_data['expiry_date'].astype(str)
+        card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')
+       
+        # Sorting values
+        card_data.sort_values(by='date_payment_confirmed', ascending = False, inplace = True)   # Sorts values based on the date when the paiment was confirmed in descending order
+        card_data = card_data.reset_index(drop=True)                                            # Fixes index, was a repeat of 54.
+       
+        return card_data
 
 
         
@@ -94,6 +101,6 @@ clean = DataCleaning()
 # print(v)
 h = clean.clean_card_data()
 print(h)
-# h = clean.upload_to_db(v, 'dim_users')
+# z = clean.upload_to_db(h, 'dim_card_details')
 
         # card_data.to_csv('card_data.csv')
