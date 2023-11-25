@@ -70,7 +70,7 @@ class DataCleaning:
         # Removing meaningless info
         card_data = card_data.replace('NULL', np.nan)                                           # Relaces 'NULL' with np.nan. 
         card_data.dropna(axis=0, inplace=True)                                                  # Drops rows with nan val.
-        card_data = card_data[card_data['expiry_date'].apply(lambda x: len(str(x)) <= 5)]       # Dropping other rows with meaningless info based on the expected length of a string
+        card_data = card_data[card_data['expiry_date'].apply(lambda x: len(str(x)) <= 5)]       # Dropping other rows with meaningless info based on the expected length of a string. Checked with .unique().
         
         card_data['card_number'] = card_data['card_number'].astype('string')                    # To remove '?' appearing in card numbers, first converts them to strings 
         card_data['card_number'] = card_data['card_number'].apply(remove_non_numerics)          # then applies remove_non_numerics. After using the function, dType turns back into object.
@@ -87,6 +87,37 @@ class DataCleaning:
         card_data = card_data.reset_index(drop=True)                                            # Fixes index, was a repeat of 54.
        
         return card_data
+    
+    def called_clean_store_data(self):
+        # stores_data = self.extractor.retrieve_stores_data()
+        # stores_data.to_csv('stores_data.csv')
+
+        stores_data = pd.read_csv('stores_data.csv')
+        # print(type(stores_data))
+        stores_data.set_index('index', inplace=True)
+
+        unique_country_codes = stores_data['country_code'].unique()
+        # print(unique_country_codes)
+
+        stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 3)]
+        # print(stores_data)
+        unique_country_codes = stores_data['country_code'].unique()
+        # print(unique_country_codes)
+
+        unique_lat = stores_data['lat'].unique()
+        # print(unique_lat)
+
+        stores_data.drop('lat', axis=1, inplace=True)
+        # print(stores_data.info())
+
+        
+
+
+        # return np.sort(stores_data['country_code'].unique())
+        # stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 3)]
+        # sf_sal.drop("Status", axis=1, inplace=True)
+        # .drop_duplicates()
+
 
 
         
@@ -99,8 +130,10 @@ class DataCleaning:
 clean = DataCleaning()
 # v = clean.clean_user_data()
 # print(v)
-h = clean.clean_card_data()
-print(h)
+# h = clean.clean_card_data()
+# print(h)
 # z = clean.upload_to_db(h, 'dim_card_details')
+s = clean.called_clean_store_data()
+
 
         # card_data.to_csv('card_data.csv')

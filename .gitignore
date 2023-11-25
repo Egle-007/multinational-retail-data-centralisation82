@@ -2,3 +2,7 @@
 db_creds.yaml
 localdb_creds.py
 config.py
+card_details
+card_data
+userDF
+stores_data.csv

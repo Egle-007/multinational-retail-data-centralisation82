@@ -20,12 +20,12 @@ class DataExtractor:
     def  retrieve_pdf_data(self, link):
         pdf_path = link
         df_pdf = tabula.read_pdf(pdf_path, stream=False, pages='all')                               # Extracts data from pdf and adds all pages into one tabular data file
-        df_pdf = pd.concat(df_pdf)                                                                  # Returns pandas DF
+        df_pdf = pd.concat(df_pdf)                                                                  # Returns pandas DF 
         return df_pdf
 
     def list_number_of_stores(self, endpoint, header):
         response = requests.get(endpoint, headers=header)                                           # Retrieving data from the API 
-        if response.status_code == 200:                                                             # If responce OK, returns the number of stores
+        if response.status_code == 200:                                                             # If responce OK, returns the number of stores 
             data = response.json()
             number = data['number_stores']
             return number
@@ -54,10 +54,9 @@ class DataExtractor:
 
 con = DatabaseConnector()
 extractor = DataExtractor()
+
 # extractor.read_rds_table(con, "legacy_users")
-
 # extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-
 # extractor.list_number_of_stores(endpoint_number, header)
 extractor.retrieve_stores_data()
 
