@@ -8,7 +8,10 @@ import requests
 # from pandasgui import show
 from config import header, endpoint_number, endpoint_store
 import json
-
+import boto3
+import botocore
+from botocore import UNSIGNED
+from botocore.config import Config
 
 class DataExtractor:
          
@@ -50,6 +53,14 @@ class DataExtractor:
         
         return stores_df
 
+    def extract_from_s3(self):
+        s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))                          # The public acces did not work with my AWS CLI config, so unsigned configuration was used.
+        s3.download_file('data-handling-public', 'products.csv', '/Users/eglute/Desktop/AiCore/retail_project/products.csv')
+
+        products = pd.read_csv('products.csv')
+        return products
+      
+
         
 
 con = DatabaseConnector()
@@ -58,7 +69,7 @@ extractor = DataExtractor()
 # extractor.read_rds_table(con, "legacy_users")
 # extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
 # extractor.list_number_of_stores(endpoint_number, header)
-extractor.retrieve_stores_data()
-
+# extractor.retrieve_stores_data()
+extractor.extract_from_s3()
 
 
