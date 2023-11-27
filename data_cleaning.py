@@ -123,6 +123,7 @@ class DataCleaning:
 
         return stores_data
      
+
     def convert_product_weights(self):
         products = self.extractor.extract_from_s3()
 
@@ -150,6 +151,7 @@ class DataCleaning:
 
         return products
     
+
     def clean_products_data(self):
         products = self.convert_product_weights()
 
@@ -167,8 +169,8 @@ class DataCleaning:
         products = products[column_names]
         
         return products
-        
  
+
     def clean_orders_data(self):
         orders_data = self.extractor.read_rds_table(self.connector, 'orders_table')
         
@@ -178,10 +180,28 @@ class DataCleaning:
         orders_data = orders_data[column_names]
         
         return orders_data
-
        
 
+    def clean_date_details(self):
+        # date_details = self.extractor.extract_from_s3_json()
+        date_details = pd.read_json('date_details.json')
 
+        #Drops unnecessary rows
+        date_details = date_details[date_details['day'].apply(lambda x: len(str(x)) <= 4)]      # Removes nonsense values
+        date_details = date_details.replace('NULL', np.nan)                                     # Replaces 'NULL' with np.nan. 
+        date_details.dropna(axis=0, inplace=True)
+
+        # Adds a col with a full date
+        date_details['date'] = date_details['year'] + '-' + date_details['month'] + '-' + date_details['day'] + ' ' +  date_details['timestamp']   
+        print(date_details['date']) 
+
+        # Assigns it to datetime dType
+        date_details['date'] = date_details['date'].astype('datetime64[ms]')
+        print(date_details.info())
+
+        date_details[['day', 'month', 'year']] =  date_details[['day', 'month', 'year']].astype('int64')
+        print(date_details.info())
+        return date_details
 
 
 
@@ -199,6 +219,6 @@ clean = DataCleaning()
 # z = clean.upload_to_db(s, 'dim_store_details')
 # x = clean.convert_product_weights()
 # y = clean.clean_products_data()
-w = clean.clean_orders_data()
-
-z = clean.upload_to_db(w, 'orders_table')
+# w = clean.clean_orders_data()
+u = clean.clean_date_details()
+z = clean.upload_to_db(u, 'dim_date_times') 
