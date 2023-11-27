@@ -3,7 +3,7 @@ from data_extraction import DataExtractor
 import pandas as pd
 from dateutil.parser import parse
 import numpy as np
-from cleaning_functions import remove_non_numerics, invalid_numbers, phone_code
+from cleaning_functions import remove_non_numerics, invalid_numbers, phone_code, remove_alphabet, keep_alphabet, multiply_values
 # from pandasgui import show
 from sqlalchemy import create_engine
 from datetime import datetime
@@ -21,7 +21,7 @@ class DataCleaning:
         read_user_data = self.extractor.read_rds_table(self.connector, 'legacy_users')          # Data to clean
         sorted_user_data = read_user_data.sort_values(by='index')                               # Sorts index into a sequential order
 
-        # Removing meaningless info
+        # Removes meaningless info
         user_data = sorted_user_data.replace('NULL', np.nan)                                    # Relaces 'NULL' with np.nan. 
         user_data.dropna(axis=0, inplace=True)                                                  # Drops rows with nan val. (nan val would go through the whole row - no useful info)
         user_data = user_data[user_data['country_code'].apply(lambda x: len(str(x)) <= 3)]      # Dropping other rows with meaningless info based on the expected length of a string
@@ -29,7 +29,7 @@ class DataCleaning:
         user_data['country_code'] = user_data['country_code'].str.replace('GGB', 'GB')          # Converts country_code typo 'GGB' into 'GB'
         user_data['address'] = user_data['address'].str.replace('\n', ', ' )                    # Replaces '\n' from the data in the address column with a ','.
 
-        # Assigning columns to an appropriate dTypes
+        # Assigns columns to an appropriate dTypes
         user_data['first_name'] = user_data['first_name'].astype('string')
         user_data['last_name'] = user_data['last_name'].astype('string') 
         
@@ -39,7 +39,7 @@ class DataCleaning:
         user_data['join_date'] = user_data['join_date'].apply(parse) 
         user_data['join_date'] = pd.to_datetime(user_data['join_date'], infer_datetime_format=True, errors='coerse')
             
-        # Cleaning phone numbers
+        # Cleans phone numbers
         user_data['phone_number'] = user_data['phone_number'].str.replace('+49','')             # Removes phone country code (if it is in the number) for numbers to be in the same style. 
         user_data['phone_number'] = user_data['phone_number'].str.replace('+44','')
         user_data['phone_number'] = user_data['phone_number'].str.replace('+1','')
@@ -69,29 +69,26 @@ class DataCleaning:
     def clean_card_data(self):
         card_data = self.extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
        
-        # Removing meaningless info
+        # Removes meaningless info                                                              # No duplicates were detected with .drop_duplicates
         card_data = card_data.replace('NULL', np.nan)                                           # Relaces 'NULL' with np.nan. 
         card_data.dropna(axis=0, inplace=True)                                                  # Drops rows with nan val.
         card_data = card_data[card_data['expiry_date'].apply(lambda x: len(str(x)) <= 5)]       # Dropping other rows with meaningless info based on the expected length of a string. Checked with .unique().
         
         card_data['card_number'] = card_data['card_number'].astype('string')                    # To remove '?' appearing in card numbers, first converts them to strings 
         card_data['card_number'] = card_data['card_number'].apply(remove_non_numerics)          # then applies remove_non_numerics. After using the function, dType turns back into object.
-        # print(card_data.info())                                                               # No duplicates
-        # card_data.drop_duplicates()
-        # print(card_data.info())
-
-        # Assigning columns to an appropriate dTypes
+        
+        # Assigns columns to an appropriate dTypes
         card_data['date_payment_confirmed'] = card_data['date_payment_confirmed'].apply(parse) 
         card_data['date_payment_confirmed'] = pd.to_datetime(card_data['date_payment_confirmed'], infer_datetime_format=True, errors='coerse')
        
         card_data['expiry_date'] = '01/' + card_data['expiry_date'].astype(str)
         card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')
        
-        # Sorting values
+        # Sorts values
         card_data.sort_values(by='date_payment_confirmed', ascending = False, inplace = True)   # Sorts values based on the date when the paiment was confirmed in descending order
         card_data = card_data.reset_index(drop=True)                                            # Fixes index, was a repeat of 54.
        
-        # return card_data
+        return card_data
     
 
     def called_clean_store_data(self):
@@ -101,16 +98,16 @@ class DataCleaning:
         stores_data = pd.read_csv('stores_data.csv')                                            # Due to status code 429: too often requests, extracted data^^ was exported as .csv^ and then the .csv file was used for cleaning.
         stores_data.set_index('index', inplace=True)
         
-        # Removing meaningless info                                                             # No duplicates were detected with .drop_duplicates                                                  
+        # Removes meaningless info                                                             # No duplicates were detected with .drop_duplicates                                                  
         stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 3)]         # Returns only those rows that meets the condition. unique_country_codes = stores_data['country_code'].unique()   # print(unique_country_codes)
-        stores_data.drop(['lat', 'Unnamed: 0'], axis=1, inplace=True)                           # Deletes 'lat' column, because it is empty. Checked: unique_lat = stores_data['lat'].unique()       # print(unique_lat)
-        stores_data.dropna(axis=0, inplace=True)                                                # df = stores_data.isnull().sum()
+        stores_data.drop(['lat', 'Unnamed: 0'], axis=1, inplace=True)                           # Deletes empty/duplicate columns. Checked: unique_lat = stores_data['lat'].unique()       # print(unique_lat)
+        stores_data.dropna(axis=0, inplace=True)                                                # Deletes rows with nan values. df = stores_data.isnull().sum()
 
         stores_data['address'] = stores_data['address'].str.replace('\n', ', ' )                # Replaces '\n' from the data in the address column with a ','.
         stores_data['continent'] = stores_data['continent'].str.replace('ee', '')               # Removes few 'ee' that were mixed into the continent names
         stores_data['staff_numbers'] = stores_data['staff_numbers'].apply(remove_non_numerics)  # Removes few letters mixed into numbers
         
-        # Assigning columns to an appropriate dTypes
+        # Assigns columns to an appropriate dTypes
         stores_data['opening_date'] = stores_data['opening_date'].apply(parse) 
         stores_data['opening_date'] = pd.to_datetime(stores_data['opening_date'], infer_datetime_format=True, errors='coerse')
 
@@ -119,13 +116,78 @@ class DataCleaning:
         stores_data['latitude'] = stores_data['latitude'].astype('float64')
         stores_data['longitude'] = stores_data['longitude'].astype('float64')
       
-        # Rearanging collumn order 
-        column_names = ['store_type', 'store_code', 'opening_date', 'staff_numbers', 'address', 'locality','country_code', 'continent', 'latitude', 'longitude']
+        # Rearanges collumn order into more logical one
+        column_names = ['store_type', 'store_code', 'opening_date', 'staff_numbers', 
+                        'address', 'locality', 'country_code', 'continent', 'latitude', 'longitude']
         stores_data = stores_data[column_names]
 
         return stores_data
      
+    def convert_product_weights(self):
+        products = self.extractor.extract_from_s3()
 
+        # Removes meaningless info that might affect weights conversion
+        products = products[products['weight'].apply(lambda x: len(str(x)) < 10)]               # Removes 10 char long letter combinations, checked no other value len is >= 10
+        products = products.replace('NULL', np.nan)                                             # Replaces 'null' with nan
+        products.dropna(axis=0, inplace=True)                                                   # Removes rows with nan val
+
+        # Prepares weights for conversion
+        products['unit'] = products['weight'].apply(keep_alphabet)                              # Keeps only alphabetical characters in new col 'units'
+        products['unit'] = products['unit'].str.replace('x', '')
+        products['weight'] = products['weight'].apply(remove_alphabet)                          # Removes all characters except these: '0-9x.,'
+
+        col = products.pop('unit')                                                              # Moves 'unit' column to a logical plase in the table.
+        products.insert(4, col.name, col)
+
+        # Multiplies product weights
+        products['weight'] = products['weight'].apply(multiply_values)                          # Multiplies those values that had 'number x number' pattern
+        products['weight'] = products['weight'].astype(float)
+       
+        # Converts weights
+        conversion_factors = {'kg': 1, 'g': 0.001, 'ml': 0.001, 'oz': 0.035274}                 # Sets up a dictionary of conversion factors
+        products['weight'] = products['weight'].mul(products['unit'].map(conversion_factors))   # Maps converted weights
+        products.loc[products['unit'].isin(conversion_factors), 'unit'] = 'kg'                  # Updates units
+
+        return products
+    
+    def clean_products_data(self):
+        products = self.convert_product_weights()
+
+        # Converts date to datetime dType
+        products['date_added'] = pd.to_datetime(products['date_added'], format = 'mixed')
+
+        # Cleans price and assigns to the right dType
+        products['product_price'] = products['product_price'].str.replace('£', '').astype(float)    #  Removes '£' from the rows, so that values could be floats
+      
+        # Organises columns
+        products['product_price_in_£'] = products['product_price']                              # Adds '£' sign to the column, to know the currency 
+        products['weight_in_kg'] = products['weight']                                           # Adds unit to the name of the column, so that unit column could be dropped
+        column_names = ['product_code', 'product_name', 'product_price_in_£',                   # Removes unnecessary col 'unit' and 'Unnamed: 0', that were not in the initial df
+                        'weight_in_kg', 'category', 'EAN', 'uuid', 'date_added', 'removed']
+        products = products[column_names]
+        
+        return products
+        
+ 
+    def clean_orders_data(self):
+        orders_data = self.extractor.read_rds_table(self.connector, 'orders_table')
+        
+        # Organises columns
+        column_names = ['date_uuid', 'user_uuid', 'card_number', 
+                        'store_code', 'product_code', 'product_quantity']                       # Removing unnecessary columns, others seams fine with the right dTypes
+        orders_data = orders_data[column_names]
+        
+        return orders_data
+
+       
+
+
+
+
+
+# level_0  date_uuid  first_name  last_name  user_uuid  card_number  store_code  product_code  1  product_quantity 
+
+# product_name	product_price	weight	category	EAN	date_added	uuid	removed	product_code
  
 clean = DataCleaning()
 # v = clean.clean_user_data()
@@ -133,6 +195,10 @@ clean = DataCleaning()
 # h = clean.clean_card_data()
 # print(h)
 
-s = clean.called_clean_store_data()
+# s = clean.called_clean_store_data()
 # z = clean.upload_to_db(s, 'dim_store_details')
+# x = clean.convert_product_weights()
+# y = clean.clean_products_data()
+w = clean.clean_orders_data()
 
+z = clean.upload_to_db(w, 'orders_table')
