@@ -59,6 +59,13 @@ class DataExtractor:
 
         products = pd.read_csv('products.csv')
         return products
+    
+    def extract_from_s3_json(self):
+        s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))                          # The public acces did not work with my AWS CLI config, so unsigned configuration was used.
+        s3.download_file('data-handling-public', 'date_details.json', '/Users/eglute/Desktop/AiCore/retail_project/date_details.json')
+
+        products = pd.read_json('date_details.json')
+        return products
       
 
         
@@ -70,6 +77,6 @@ extractor = DataExtractor()
 # extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
 # extractor.list_number_of_stores(endpoint_number, header)
 # extractor.retrieve_stores_data()
-extractor.extract_from_s3()
+extractor.extract_from_s3_json()
 
 
