@@ -4,9 +4,7 @@ import pandas as pd
 from dateutil.parser import parse
 import numpy as np
 from cleaning_functions import remove_non_numerics, invalid_numbers, phone_code, remove_alphabet, keep_alphabet, multiply_values
-# from pandasgui import show
 from sqlalchemy import create_engine
-from datetime import datetime
 
 
 
@@ -98,7 +96,7 @@ class DataCleaning:
         stores_data = pd.read_csv('stores_data.csv')                                            # Due to status code 429: too often requests, extracted data^^ was exported as .csv^ and then the .csv file was used for cleaning.
         stores_data.set_index('index', inplace=True)
         
-        # Removes meaningless info                                                             # No duplicates were detected with .drop_duplicates                                                  
+        # Removes meaningless info                                                              # No duplicates were detected with .drop_duplicates                                                  
         stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 3)]         # Returns only those rows that meets the condition. unique_country_codes = stores_data['country_code'].unique()   # print(unique_country_codes)
         stores_data.drop(['lat', 'Unnamed: 0'], axis=1, inplace=True)                           # Deletes empty/duplicate columns. Checked: unique_lat = stores_data['lat'].unique()       # print(unique_lat)
         stores_data.dropna(axis=0, inplace=True)                                                # Deletes rows with nan values. df = stores_data.isnull().sum()
@@ -124,8 +122,9 @@ class DataCleaning:
         return stores_data
      
 
-    def convert_product_weights(self):
-        products = self.extractor.extract_from_s3()
+    def _convert_product_weights_(self):
+        # products = self.extractor.extract_from_s3()
+        products = pd.read_csv('products.csv')
 
         # Removes meaningless info that might affect weights conversion
         products = products[products['weight'].apply(lambda x: len(str(x)) < 10)]               # Removes 10 char long letter combinations, checked no other value len is >= 10
@@ -153,7 +152,7 @@ class DataCleaning:
     
 
     def clean_products_data(self):
-        products = self.convert_product_weights()
+        products = self._convert_product_weights_()
 
         # Converts date to datetime dType
         products['date_added'] = pd.to_datetime(products['date_added'], format = 'mixed')
@@ -167,7 +166,7 @@ class DataCleaning:
         column_names = ['product_code', 'product_name', 'product_price_in_£',                   # Removes unnecessary col 'unit' and 'Unnamed: 0', that were not in the initial df
                         'weight_in_kg', 'category', 'EAN', 'uuid', 'date_added', 'removed']
         products = products[column_names]
-        
+        print(products)
         return products
  
 
@@ -183,7 +182,6 @@ class DataCleaning:
        
 
     def clean_date_details(self):
-        # date_details = self.extractor.extract_from_s3_json()
         date_details = pd.read_json('date_details.json')
 
         #Drops unnecessary rows
@@ -218,7 +216,7 @@ clean = DataCleaning()
 # s = clean.called_clean_store_data()
 # z = clean.upload_to_db(s, 'dim_store_details')
 # x = clean.convert_product_weights()
-# y = clean.clean_products_data()
+y = clean.clean_products_data()
 # w = clean.clean_orders_data()
-u = clean.clean_date_details()
-z = clean.upload_to_db(u, 'dim_date_times') 
+# u = clean.clean_date_details()
+# z = clean.upload_to_db(u, 'dim_date_times') 

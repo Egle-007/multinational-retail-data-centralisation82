@@ -1,15 +1,11 @@
 from database_utils import DatabaseConnector
-import yaml
-import psycopg2
-from sqlalchemy import create_engine, inspect
+# from sqlalchemy import create_engine, inspect
 import pandas as pd
 import tabula
 import requests
-# from pandasgui import show
-from config import header, endpoint_number, endpoint_store
+from config import header, endpoint_number
 import json
 import boto3
-import botocore
 from botocore import UNSIGNED
 from botocore.config import Config
 
@@ -20,14 +16,14 @@ class DataExtractor:
         df = pd.read_sql_table(table_name, engine, index_col='index')                               # Creates pandas DF, index_col ='index' to have just one index col
         return df
     
-    def  retrieve_pdf_data(self, link):
+    def retrieve_pdf_data(self, link):
         pdf_path = link
         df_pdf = tabula.read_pdf(pdf_path, stream=False, pages='all')                               # Extracts data from pdf and adds all pages into one tabular data file
         df_pdf = pd.concat(df_pdf)                                                                  # Returns pandas DF 
         return df_pdf
 
     def list_number_of_stores(self, endpoint, header):
-        response = requests.get(endpoint, headers=header)                                           # Retrieving data from the API 
+        response = requests.get(endpoint, headers=header)                                           # Retrieves data from the API 
         if response.status_code == 200:                                                             # If responce OK, returns the number of stores 
             data = response.json()
             number = data['number_stores']
@@ -53,19 +49,13 @@ class DataExtractor:
         
         return stores_df
 
-    def extract_from_s3(self):
+    def extract_from_s3(self, bucket_name, file_name, local_pwd):
         s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))                          # The public acces did not work with my AWS CLI config, so unsigned configuration was used.
-        s3.download_file('data-handling-public', 'products.csv', '/Users/eglute/Desktop/AiCore/retail_project/products.csv')
+        s3.download_file(bucket_name, file_name, local_pwd)                                         # Instead of creating two methods that return pd dataframe from different types of files, 
 
-        products = pd.read_csv('products.csv')
-        return products
     
-    def extract_from_s3_json(self):
-        s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))                          # The public acces did not work with my AWS CLI config, so unsigned configuration was used.
-        s3.download_file('data-handling-public', 'date_details.json', '/Users/eglute/Desktop/AiCore/retail_project/date_details.json')
-
-        products = pd.read_json('date_details.json')
-        return products
+    
+   
       
 
         
@@ -77,6 +67,6 @@ extractor = DataExtractor()
 # extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
 # extractor.list_number_of_stores(endpoint_number, header)
 # extractor.retrieve_stores_data()
-extractor.extract_from_s3_json()
+extractor.extract_from_s3()
 
 
