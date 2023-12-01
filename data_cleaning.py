@@ -80,7 +80,7 @@ class DataCleaning:
         card_data['date_payment_confirmed'] = pd.to_datetime(card_data['date_payment_confirmed'], infer_datetime_format=True, errors='coerse')
        
         card_data['expiry_date'] = '01/' + card_data['expiry_date'].astype(str)
-        # card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')
+        # card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')   # Because of further tasks had to 'hash' this bit
        
         # Sorts values
         card_data.sort_values(by='date_payment_confirmed', ascending = False, inplace = True)   # Sorts values based on the date when the paiment was confirmed in descending order
@@ -91,13 +91,10 @@ class DataCleaning:
 
     def called_clean_store_data(self):
         # stores_data = self.extractor.retrieve_stores_data()                                   
-        # stores_data.to_csv('stores_data_or.csv')
 
         stores_data = pd.read_csv('stores_data.csv')                                            # Due to status code 429: too often requests, extracted data^^ was exported as .csv^ and then the .csv file was used for cleaning.
         stores_data.set_index('index', inplace=True)
-        # print(stores_data.info())
-        # print(stores_data)
-
+      
         # # Removes meaningless info                                                            # No duplicates were detected with .drop_duplicates                                                  
         stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 4)]         # Returns only those rows that meets the condition. unique_country_codes = stores_data['country_code'].unique()   # print(unique_country_codes)
         stores_data.drop(['lat', 'Unnamed: 0'], axis=1, inplace=True)                           # Deletes empty/duplicate columns. Checked: unique_lat = stores_data['lat'].unique()       # print(unique_lat)
@@ -203,7 +200,7 @@ clean = DataCleaning()
 # h = clean.clean_card_data()
 # print(h)
 
-s = clean.called_clean_store_data()
+# s = clean.called_clean_store_data()
 # z = clean.upload_to_db(s, 'dim_store_details')
 # x = clean.convert_product_weights()
 # y = clean.clean_products_data()
