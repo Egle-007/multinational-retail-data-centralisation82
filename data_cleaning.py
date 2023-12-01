@@ -61,7 +61,7 @@ class DataCleaning:
         DATABASE = 'sales_data'
         PORT = 5432
         engine_local = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
-        df.to_sql(table_name, engine_local)
+        df.to_sql(table_name, engine_local, if_exists='replace')
 
 
     def clean_card_data(self):
@@ -80,7 +80,7 @@ class DataCleaning:
         card_data['date_payment_confirmed'] = pd.to_datetime(card_data['date_payment_confirmed'], infer_datetime_format=True, errors='coerse')
        
         card_data['expiry_date'] = '01/' + card_data['expiry_date'].astype(str)
-        card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')
+        # card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')
        
         # Sorts values
         card_data.sort_values(by='date_payment_confirmed', ascending = False, inplace = True)   # Sorts values based on the date when the paiment was confirmed in descending order
@@ -91,15 +91,17 @@ class DataCleaning:
 
     def called_clean_store_data(self):
         # stores_data = self.extractor.retrieve_stores_data()                                   
-        # stores_data.to_csv('stores_data.csv')
+        # stores_data.to_csv('stores_data_or.csv')
 
         stores_data = pd.read_csv('stores_data.csv')                                            # Due to status code 429: too often requests, extracted data^^ was exported as .csv^ and then the .csv file was used for cleaning.
         stores_data.set_index('index', inplace=True)
-        
-        # Removes meaningless info                                                              # No duplicates were detected with .drop_duplicates                                                  
-        stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 3)]         # Returns only those rows that meets the condition. unique_country_codes = stores_data['country_code'].unique()   # print(unique_country_codes)
+        # print(stores_data.info())
+        # print(stores_data)
+
+        # # Removes meaningless info                                                            # No duplicates were detected with .drop_duplicates                                                  
+        stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 4)]         # Returns only those rows that meets the condition. unique_country_codes = stores_data['country_code'].unique()   # print(unique_country_codes)
         stores_data.drop(['lat', 'Unnamed: 0'], axis=1, inplace=True)                           # Deletes empty/duplicate columns. Checked: unique_lat = stores_data['lat'].unique()       # print(unique_lat)
-        stores_data.dropna(axis=0, inplace=True)                                                # Deletes rows with nan values. df = stores_data.isnull().sum()
+        stores_data.dropna(axis=0, how='all', inplace=True)                                     # Deletes rows with only the nan values.
 
         stores_data['address'] = stores_data['address'].str.replace('\n', ', ' )                # Replaces '\n' from the data in the address column with a ','.
         stores_data['continent'] = stores_data['continent'].str.replace('ee', '')               # Removes few 'ee' that were mixed into the continent names
@@ -118,7 +120,7 @@ class DataCleaning:
         column_names = ['store_type', 'store_code', 'opening_date', 'staff_numbers', 
                         'address', 'locality', 'country_code', 'continent', 'latitude', 'longitude']
         stores_data = stores_data[column_names]
-
+        print(stores_data.info())
         return stores_data
      
 
@@ -147,7 +149,7 @@ class DataCleaning:
         conversion_factors = {'kg': 1, 'g': 0.001, 'ml': 0.001, 'oz': 0.035274}                 # Sets up a dictionary of conversion factors
         products['weight'] = products['weight'].mul(products['unit'].map(conversion_factors))   # Maps converted weights
         products.loc[products['unit'].isin(conversion_factors), 'unit'] = 'kg'                  # Updates units
-
+        
         return products
     
 
@@ -177,7 +179,7 @@ class DataCleaning:
         column_names = ['date_uuid', 'user_uuid', 'card_number', 
                         'store_code', 'product_code', 'product_quantity']                       # Removing unnecessary columns, others seams fine with the right dTypes
         orders_data = orders_data[column_names]
-        
+
         return orders_data
        
 
@@ -188,24 +190,12 @@ class DataCleaning:
         date_details = date_details[date_details['day'].apply(lambda x: len(str(x)) <= 4)]      # Removes nonsense values
         date_details = date_details.replace('NULL', np.nan)                                     # Replaces 'NULL' with np.nan. 
         date_details.dropna(axis=0, inplace=True)
-
-        # Adds a col with a full date
-        date_details['date'] = date_details['year'] + '-' + date_details['month'] + '-' + date_details['day'] + ' ' +  date_details['timestamp']   
-        print(date_details['date']) 
-
-        # Assigns it to datetime dType
-        date_details['date'] = date_details['date'].astype('datetime64[ms]')
-        print(date_details.info())
-
-        date_details[['day', 'month', 'year']] =  date_details[['day', 'month', 'year']].astype('int64')
-        print(date_details.info())
+        date_details.drop_duplicates()
+    
         return date_details
 
 
 
-# level_0  date_uuid  first_name  last_name  user_uuid  card_number  store_code  product_code  1  product_quantity 
-
-# product_name	product_price	weight	category	EAN	date_added	uuid	removed	product_code
  
 clean = DataCleaning()
 # v = clean.clean_user_data()
@@ -213,10 +203,10 @@ clean = DataCleaning()
 # h = clean.clean_card_data()
 # print(h)
 
-# s = clean.called_clean_store_data()
+s = clean.called_clean_store_data()
 # z = clean.upload_to_db(s, 'dim_store_details')
 # x = clean.convert_product_weights()
-y = clean.clean_products_data()
+# y = clean.clean_products_data()
 # w = clean.clean_orders_data()
 # u = clean.clean_date_details()
-# z = clean.upload_to_db(u, 'dim_date_times') 
+# z = clean.upload_to_db(h, 'dim_card_details') 
