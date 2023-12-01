@@ -21,7 +21,7 @@ A multinational company that sells various goods across the globe has their sale
 ## Classes and Methods
 
 
-There were three classes built to extract, clean and upload data to the database. Each class had several methods to fulfill their purposes.
+There were three classes built to extract, transform and load data to the local database. Each class had several methods to fulfill their purposes.
 
 **DatabaseConnector** class is used for connection to AWS RDS  database where part of the sales data was kept prior to the project. **Methods** used in the class:
 
@@ -55,5 +55,13 @@ You are able to clone the repository by typing the following command in the comm
 
     git clone -c https://github.com/Egle-007/multinational-retail-data-centralisation82.git
 
+## Main files
+
+    1. Milestone 1 and 2: 
+        - database_utils.py - connecting to databases;
+        - data_extraction.py - extraction of the data;
+        - data_cleaning.py - data cleaning and uploading to local database.
+    2. Milestone 3:
+        - MRDC_mile3.sql - sql code for tables.
 
 
