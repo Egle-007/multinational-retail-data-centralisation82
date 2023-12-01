@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 class DataCleaning:
     def __init__(self):
         self.connector = DatabaseConnector()        # Connection through engine
-        self.extractor = DataExtractor()            # Returns dataframe 
+        self.extractor = DataExtractor()            # Returns dataframes 
         
 
     def clean_user_data(self):

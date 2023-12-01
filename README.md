@@ -62,7 +62,7 @@ You are able to clone the repository by typing the following command in the comm
         - data_extraction.py - extraction of the data;
         - data_cleaning.py - data cleaning and uploading to local database.
     2. Milestone 3:
-        - MRDC_mile3.sql - sql code for tables.
+        - MRDC_mile3.sql - sql code for tables. Creates database schema.
 
 
 
