@@ -10,10 +10,54 @@ from sqlalchemy import create_engine
 
 
 class DataCleaning:
+    '''
+    DatabaseExtractor is a class used to extract files from different data sources.
+    
+    Attributes:
+    -------
+    connector: engine
+        Connection engine that connects to remote database.
+    extractor: pd DataFrame
+        Extracts files from different data sources.
+
+    Methods:
+    -------
+    upload_to_db(df, table_name)
+        Take pd DataFrame and table_name as arguments and upload cleaned data to a local database. 
+    clean_user_data()
+        Take in a pd DataFrame and clean 'legacy_users' table data from meaningless info, 
+        adjust data types and unify the style of the data presentation (e.g., phone number). Return pd DataFrame.
+    clean_card_data()
+        Take in a pd DataFrame and clean card data from meaningless info, 
+        adjust data types and sort values in decending order. Return pd DataFrame.
+    called_clean_store_data()
+        Take in the 'stores_data.csv' file and turn it into Pandas DataFrame, remove meaningless info, 
+        assign data types and rearange collumn order. Return pd DataFrame.
+    _convert_product_weights_()
+        Take in the 'products.csv' file and turn it into Pandas DataFrame, prep weight data for conversion, 
+        perform multiplication where needed and convert numbers to the same units. Not necessary to use outside the class. Return pd DataFrame.
+    clean_products_data()
+        Take in products DataFrame, assign columns to the right data type, rearange columns and return pd DataFrame.
+    clean_orders_data()
+        Take in orders DataFrame, eliminate empty column, return DataFrame.
+    clean_date_details()
+        Take in date DataFrame, delete drop unnecessary row and return pd DataFrame.
+    '''
+
     def __init__(self):
         self.connector = DatabaseConnector()        # Connection through engine
         self.extractor = DataExtractor()            # Returns dataframes 
         
+    def upload_to_db(self, df, table_name):                                                     # This method was meant to be in database_utils.py, but due to some errors decided to keep it in this file.
+        DATABASE_TYPE = 'postgresql'                                                            # Creates connection with and uploads dataframe to local pgadmin sales_data database
+        DBAPI = 'psycopg2'
+        HOST = 'localhost'
+        USER = 'postgres'
+        PASSWORD = input()                                                                      # Tried puting creds to a separate file, however due to some erros, decided not to use a file, but require the users input of the password.
+        DATABASE = 'sales_data'
+        PORT = 5432
+        engine_local = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
+        df.to_sql(table_name, engine_local, if_exists='replace')
 
     def clean_user_data(self):
         read_user_data = self.extractor.read_rds_table(self.connector, 'legacy_users')          # Data to clean
@@ -38,7 +82,7 @@ class DataCleaning:
         user_data['join_date'] = pd.to_datetime(user_data['join_date'], infer_datetime_format=True, errors='coerse')
             
         # Cleans phone numbers
-        user_data['phone_number'] = user_data['phone_number'].str.replace('+49','')             # Removes phone country code (if it is in the number) for numbers to be in the same style. 
+        user_data['phone_number'] = user_data['phone_number'].str.replace('+49','')             # Removes phone country code (if it is in the number) to unify the style. 
         user_data['phone_number'] = user_data['phone_number'].str.replace('+44','')
         user_data['phone_number'] = user_data['phone_number'].str.replace('+1','')
        
@@ -48,21 +92,9 @@ class DataCleaning:
 
         col = user_data.pop('phone_country_code')                                               # Moves 'phone_country_code' column to a logical plase in the table.
         user_data.insert(8, col.name, col)
-
+        print(user_data)
         return user_data
     
-
-    def upload_to_db(self, df, table_name):                                                     # Creates connection with and uploads dataframe to local pgadmin sales_data database
-        DATABASE_TYPE = 'postgresql'
-        DBAPI = 'psycopg2'
-        HOST = 'localhost'
-        USER = 'postgres'
-        PASSWORD = input()
-        DATABASE = 'sales_data'
-        PORT = 5432
-        engine_local = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
-        df.to_sql(table_name, engine_local, if_exists='replace')
-
 
     def clean_card_data(self):
         card_data = self.extractor.retrieve_pdf_data('https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
@@ -80,7 +112,7 @@ class DataCleaning:
         card_data['date_payment_confirmed'] = pd.to_datetime(card_data['date_payment_confirmed'], infer_datetime_format=True, errors='coerse')
        
         card_data['expiry_date'] = '01/' + card_data['expiry_date'].astype(str)
-        # card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')   # Because of further tasks had to 'hash' this bit
+        # card_data['expiry_date'] = pd.to_datetime(card_data['expiry_date'], format='mixed')   # Because of the further tasks had to 'hash' this bit
        
         # Sorts values
         card_data.sort_values(by='date_payment_confirmed', ascending = False, inplace = True)   # Sorts values based on the date when the paiment was confirmed in descending order
@@ -88,14 +120,13 @@ class DataCleaning:
        
         return card_data
     
-
     def called_clean_store_data(self):
         # stores_data = self.extractor.retrieve_stores_data()                                   
 
         stores_data = pd.read_csv('stores_data.csv')                                            # Due to status code 429: too often requests, extracted data^^ was exported as .csv^ and then the .csv file was used for cleaning.
         stores_data.set_index('index', inplace=True)
       
-        # # Removes meaningless info                                                            # No duplicates were detected with .drop_duplicates                                                  
+        # Removes meaningless info                                                              # No duplicates were detected with .drop_duplicates                                                  
         stores_data = stores_data[stores_data['country_code'].apply(lambda x: len(str(x)) <= 4)]         # Returns only those rows that meets the condition. unique_country_codes = stores_data['country_code'].unique()   # print(unique_country_codes)
         stores_data.drop(['lat', 'Unnamed: 0'], axis=1, inplace=True)                           # Deletes empty/duplicate columns. Checked: unique_lat = stores_data['lat'].unique()       # print(unique_lat)
         stores_data.dropna(axis=0, how='all', inplace=True)                                     # Deletes rows with only the nan values.
@@ -121,7 +152,7 @@ class DataCleaning:
         return stores_data
      
 
-    def _convert_product_weights_(self):
+    def _convert_product_weights_(self):                                                        # protected method not neccessary to see in the autocompletion hints
         # products = self.extractor.extract_from_s3()
         products = pd.read_csv('products.csv')
 
@@ -188,14 +219,14 @@ class DataCleaning:
         date_details = date_details.replace('NULL', np.nan)                                     # Replaces 'NULL' with np.nan. 
         date_details.dropna(axis=0, inplace=True)
         date_details.drop_duplicates()
-    
+        
         return date_details
 
 
 
  
 clean = DataCleaning()
-# v = clean.clean_user_data()
+v = clean.clean_user_data()
 # print(v)
 # h = clean.clean_card_data()
 # print(h)
@@ -206,4 +237,4 @@ clean = DataCleaning()
 # y = clean.clean_products_data()
 # w = clean.clean_orders_data()
 # u = clean.clean_date_details()
-# z = clean.upload_to_db(h, 'dim_card_details') 
+# z = clean.upload_to_db(u, 'dim_card_details') 
