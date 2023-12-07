@@ -8,6 +8,7 @@ import boto3
 from botocore import UNSIGNED
 from botocore.config import Config
 
+
 class DataExtractor:
     ''' 
     DatabaseExtractor is a class used to extract files from different data sources.

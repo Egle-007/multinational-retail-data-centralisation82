@@ -72,7 +72,7 @@ ORDER BY
 
 SELECT store_type,
        ROUND((SUM(product_price_in_£ * product_quantity)::NUMERIC), 2) AS total_sales,
-	  ROUND(SUM(product_price_in_£ * product_quantity)::NUMERIC/
+	   ROUND(SUM(product_price_in_£ * product_quantity)::NUMERIC/
 			 SUM(SUM(product_price_in_£ * product_quantity):: NUMERIC) over() * 100, 2) 
 			 AS "percentage_total(%)" -- SUM(SUM(total_sales)) covers all locations, SUM(total_sales) covers just one location.
 FROM 
@@ -162,7 +162,7 @@ WITH CTE_initial AS (
            AVG(initial_time - lead_time) AS avg_time
 	FROM time_interval
 	GROUP BY year
-	order by avg_time desc
+	ORDER BY avg_time DESC;
 	
 
 

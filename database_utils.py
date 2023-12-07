@@ -8,11 +8,11 @@ class DatabaseConnector:
     -------
     Methods:
     -------
-    _read_db_creds_(self)
+    _read_db_creds_()
         Read the credentials in yaml file and return a dictionary of the credentials.
-    init_db_engine(self)
+    init_db_engine()
         Read the credentials from the return of read_db_creds and initialise (use the credentials to log into the db) and return an sqlalchemy database engine.
-    list_db_tables(self, engine)
+    list_db_tables(engine)
         Print table names.
     '''
 

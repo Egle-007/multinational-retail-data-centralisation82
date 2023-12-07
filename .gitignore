@@ -1,7 +1,7 @@
 # This file not to be tracked.
 db_creds.yaml
 localdb_creds.py
-config.py
+# config.py
 card_details
 card_data
 userDF
@@ -10,4 +10,4 @@ products.csv
 weight.csv
 prod.csv
 date_details.json
-docs.py
+docs.py.vscode

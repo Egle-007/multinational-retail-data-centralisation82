@@ -7,7 +7,7 @@ A multinational company that sells various goods across the globe has their sale
 
 ### Purpose
 
-    To make company's up-to-date sales data accessible to the staff from one centralised location.
+    To make the company more data-driven by implementing ETL (extract-transform-load) so that it's up-to-date sales data would be accessible to the staff from one centralised location, therefore improve business decision making.
 
 ### Development goals
 
@@ -15,10 +15,24 @@ A multinational company that sells various goods across the globe has their sale
 
 2. Query the database to get up-to-date metrics for the business and answer business questions so tat the company could then make more data-driven decisions and get a better understanding of it's sales. 
 
+## Main tools 
+
+    1. VSCode 
+    2. Python
+    3. SQL
+    4. pgAdmin
+    5. pandas 
+    6. numpy 
+    7. sqlalchemy
+    8. tabula 
+    9. requests 
+    10. boto3
+    11. botocore
+    12. json
+    13. yaml
 
 
-
-## Classes and Methods
+### Classes and Methods
 
 
 There were three classes built to extract, transform and load data to the local database. Each class had several methods to fulfill their purposes.
@@ -46,7 +60,7 @@ There were three classes built to extract, transform and load data to the local 
 * **clean_products_data** - cleans product data.
 * **clean_orders_data** - cleans orders data.
 * **clean_date_details** - cleans and organises date details.
-* **upload_to_db** - uploads dataframes into local database.
+* **upload_to_db** - uploads dataframes into the local database.
 
 
 ## Cloning to your local device
@@ -55,15 +69,23 @@ You are able to clone the repository by typing the following command in the comm
 
     git clone -c https://github.com/Egle-007/multinational-retail-data-centralisation82.git
 
-## Main files
+## Other
+
+### Main files
 
     1. Milestone 1 and 2: 
         - database_utils.py - connecting to databases;
         - data_extraction.py - extraction of the data;
         - data_cleaning.py - data cleaning and uploading to local database.
-    2. Milestone 3:
-        - MRDC_mile3.sql - sql code for tables. Creates database schema.
+        - cleaning_functions.py - functions used in data cleaning process.
+    2. Milestone 3 and 4:
+        - MRDC_mile3.sql - SQL tables alterations. Creates database schema.
+        - MRDC_mile.sql - SQL queries.
+        - SQL_result_visual.ipynb - visual presentation of SQL table alterations and queries.
 
+### Lisence
+
+    This project is licensed under the MIT lisence.
 
 
 

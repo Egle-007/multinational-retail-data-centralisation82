@@ -8,7 +8,6 @@ from sqlalchemy import create_engine
 
 
 
-
 class DataCleaning:
     '''
     DatabaseExtractor is a class used to extract files from different data sources.
@@ -226,7 +225,7 @@ class DataCleaning:
 
  
 clean = DataCleaning()
-v = clean.clean_user_data()
+# v = clean.clean_user_data()
 # print(v)
 # h = clean.clean_card_data()
 # print(h)
