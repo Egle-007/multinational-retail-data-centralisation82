@@ -3,7 +3,7 @@ import re
 def remove_non_numerics(x):                            # Cleans phone number from nondigits, str.replace('[^0-9]') did not work 
     return re.sub('[^0-9]', '', x) 
 
-def remove_alphabet(x):                                 # Cleans unwanted alphabeticcal characters 
+def remove_alphabet(x):                                # Cleans unwanted alphabeticcal characters 
     return re.sub('[^0-9x.,]', '', x)
 
 def keep_alphabet(x):                                  # Keeps only alphabetical characters
@@ -17,7 +17,7 @@ def invalid_numbers(x):
     else:                                              # Function 'invalid_numbers' picks those numbers that are outside expected length and returns 'Invalid number' instead.
         return 'Invalid number'
     
-def phone_code(x):                                     # There is just 3 countries
+def phone_code(x):                                     # There is just 3 countries, the function returns a phone country code based on the country two letter country code.
     if x == 'GB':
         return '+44'
     elif x == 'US':
@@ -25,13 +25,12 @@ def phone_code(x):                                     # There is just 3 countri
     else:
         return '+49'
 
-def multiply_values(val):
+def multiply_values(val):                              # for weight values that had expression 'num x num', replacing 'x' and multiplying two numbers
     if 'x' in val:
         val = val.replace('x', ' ')
         int1, int2 = val.split(' ')[0], val.split(' ')[1]
         new_val = int(int1)*int(int2)
-        return new_val
+        return new_val                                 # returns a new val if there were two numbers that were multiplied 
     else: 
-        return val
+        return val                                     # returns the same value if it was just one number 
     
-# remove_non_numerics, invalid_numbers, del_zero, phone_code
