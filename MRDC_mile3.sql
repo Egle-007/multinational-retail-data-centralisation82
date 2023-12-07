@@ -109,12 +109,12 @@ ALTER TABLE dim_products
 ALTER TABLE dim_products 
      ALTER COLUMN product_price_in_£ TYPE FLOAT,
 	 ALTER COLUMN weight_in_kg TYPE FLOAT,
-	 ALTER COLUMN "EAN" TYPE VARCHAR(17),
+	 ALTER COLUMN "EAN" TYPE VARCHAR(17),                                                   -- EAN in " " because otherwise it throws an error
 	 ALTER COLUMN product_code TYPE VARCHAR(11),
 	 ALTER COLUMN date_added TYPE DATE,
 	 ALTER COLUMN uuid SET DATA TYPE UUID USING uuid::UUID,
 	 ALTER COLUMN weight_class TYPE VARCHAR(14),
-	 ALTER COLUMN still_available TYPE BOOLEAN USING (still_available='Still_avaliable');
+	 ALTER COLUMN still_available TYPE BOOLEAN USING (still_available='Still_avaliable');   -- USING ({column name}={'a value that will be taken as True, and everything else that is not this value will be considered as False'})
 
 SELECT MAX(LENGTH("EAN")) 
 FROM dim_products;	/* 17*/
@@ -132,9 +132,9 @@ SELECT MAX(LENGTH(time_period))
 FROM dim_date_times;	/* 10*/
 
  ALTER TABLE dim_date_times 
-     ALTER COLUMN "month" TYPE VARCHAR(2),
-	 ALTER COLUMN "year" TYPE VARCHAR(4),
-	 ALTER COLUMN "day" TYPE VARCHAR(2),
+     ALTER COLUMN month TYPE VARCHAR(2),
+	 ALTER COLUMN year TYPE VARCHAR(4),
+	 ALTER COLUMN day TYPE VARCHAR(2),
 	 ALTER COLUMN time_period TYPE VARCHAR(10),
 	 ALTER COLUMN date_uuid SET DATA TYPE UUID USING date_uuid::UUID;
 	 
