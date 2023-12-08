@@ -7,7 +7,7 @@ A multinational company that sells various goods across the globe has their sale
 
 ### Purpose
 
-To make the company more data-driven by implementing ETL (extract-transform-load) so that it's up-to-date sales data would be accessible to the staff from one centralised location, therefore improve business decision making.
+To make the company more data-driven so that it's up-to-date sales data would be accessible to the staff from one centralised location, therefore improve business decision making.
 
 ### Development goals
 
